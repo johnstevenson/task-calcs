@@ -1,0 +1,31 @@
+// settings
+:doctype: book
+:chapter-label:
+:toc: left
+:toclevels: 2
+:toc-title: Contents
+:sectnums:
+:sectnumlevels: 5
+:icons: font
+:includedir: includes
+:xrefstyle: short
+:pdf-stylesdir: assets
+:pdf-fontsdir: assets/fonts
+// end settings
+
+= Task Distance Calculations
+//FAI Hang Gliding and Paragliding Commission
+//ifndef::revnumber[Not for distribution {localdatetime}]
+
+//ifdef::revnumber[]
+//include::assets/license.adoc[]
+//endif::[]
+
+[preface]
+== Preface
+
+****
+About this draft
+****
+
+== Introduction
