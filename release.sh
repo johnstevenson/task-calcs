@@ -8,6 +8,9 @@
 doc=task-calcs.adoc
 output_basename=task-calcs
 
+# Set the code highlighter for pdf
+highlighter_pdf=coderay
+
 dir=$(cd "${0%[/\\]*}" > /dev/null; pwd)
 
 # Change to this root directory
@@ -50,7 +53,9 @@ html_release=releases/$output_basename-$tag.html
 
 function convert_to_pdf {
 
-    asciidoctor-pdf -o "$pdf_release" -a "revnumber=$tag" -a "revdate=$revdate" "$tmpdoc"
+    highlighter="source-highlighter=$highlighter_pdf"
+
+    asciidoctor-pdf -o "$pdf_release" -a "revnumber=$tag" -a "revdate=$revdate" -a "$highlighter" "$tmpdoc"
     if [ $? -ne 0 ]; then
         echo "asciidoctor-pdf failed"
         return 1

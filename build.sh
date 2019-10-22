@@ -7,6 +7,9 @@
 doc=task-calcs.adoc
 output_basename=dev-task-calcs
 
+# Set the code highlighter for pdf
+highlighter_pdf=coderay
+
 dir=$(cd "${0%[/\\]*}" > /dev/null; pwd)
 
 # Change to this root directory
@@ -15,8 +18,9 @@ current_branch="$(git rev-parse --abbrev-ref HEAD)"
 
 # Check there are no changes to stage or commit
 if [ ! -z "$(git status --porcelain)" ]; then
-    echo "Uncommitted changes on $current_branch branch - build aborted"
-    exit 1
+    echo "Warning: Uncommitted changes on $current_branch branch"
+    #echo "Uncommitted changes on $current_branch branch - build aborted"
+    #exit 1
 fi
 
 # Get the date of the current commit
@@ -31,7 +35,9 @@ html_release=temp/$output_basename-$hash.html
 
 function convert_to_pdf {
 
-    asciidoctor-pdf -o "$pdf_release" -a "revnumber=$revnumber" -a "revdate=$revdate" "$doc"
+    highlighter="source-highlighter=$highlighter_pdf"
+
+    asciidoctor-pdf -o "$pdf_release" -a "revnumber=$revnumber" -a "revdate=$revdate" -a "$highlighter" "$doc"
     if [ $? -ne 0 ]; then
         echo "asciidoctor-pdf failed"
         return 1
