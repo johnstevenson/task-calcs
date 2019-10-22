@@ -4,15 +4,19 @@
 :toc: left
 :toclevels: 4
 :toc-title: Contents
+//:sectlinks:
 :sectnums:
 :sectnumlevels: 5
+:idprefix:
+:idseparator: -
 :icons: font
 :figure-caption!:
 :imagesdir: assets
 :data-uri:
 :includedir: includes
-:xrefstyle: short
-:pdf-stylesdir: assets
+:xrefstyle: basic
+:pdf-theme: basic
+:pdf-themesdir: assets
 :pdf-fontsdir: assets/fonts
 :source-highlighter: highlightjs
 :source-language: javascript
@@ -31,7 +35,21 @@
 == Preface
 
 ****
-About this draft
+This is a draft document intended for feedback.
+
+It is based on the task distance calculations in FS, with the following differences:
+
+* the code is split into simple functions
+* it computes the maximum number of operations, rather than using a fixed value (200)
+* it ignores the radius of the first point
+* it adds extra error-checking in case cylinders erroneously intersect
+* it calculates the shortest path to the end of speed section and then on to goal
+
+What this document does not yet address is:
+
+* the transformation method from WGS84 to cartesian coordinates
+* the method of transforming cartesian fix positions back to WGS84 coordinates
+
 ****
 
 == Introduction
@@ -43,42 +61,47 @@ image::task-es.jpg[]
 
 The calculations required to determine this path are best suited to plane geometry, so the WGS84 coordinates of the turnpoint cylinders (and goal line endpoints) are transformed to cartesian coordinates. The planar distance of the calculated path is not used, but the resulting position fixes on the cylinders (and goal line) are transformed back to WGS84 coordinates and used to calculate the ellipsoidal distance.
 
-This document describes the algorithms needed to perform these calculations.
+This document describes the algorithms needed to perform these calculations, which are as much about speed and ease of use as they are about acceptable accuracy.
 
 == Calculations
 
-These calculations require an array of points that represent the cylinders using a center position in cartesian coordinates, a radius in metres and a fix position that will mark the point on the cylinder (or line) of the shortest path. This fix position is initially set as the center position.
+These calculations require a set of points representing the cylinders, comprising a center position in cartesian coordinates, a radius in metres and a fix position that will mark the point on the cylinder (or line) of the shortest path. This fix position is initially set as the center position.
 
-.Core algorithm
+When the calculations are used to determine the best distance flown by a pilot, the set of points is created from a track point and the remaining cylinders not reached by the pilot.
+
+=== Core algorithm
 The base calculation uses three sequential points (P1, P2, P3) and finds the shortest distance between P1 and P3 that touches the P2 cylinder. P1 and P3 are taken from their fix positions and the point found on the cylinder is stored as the P2 fix. The leg distance is measured between the P1 and P2 fix positions.
 
 The algorithm sequentially steps through the remaining points and performs this calculation on each one, so the most recent P2 fix becomes the P1 fix used in the next step. On completion, all points will have a fix position on their cylinder (or line) and the shortest distance found will be the sum of the leg distances.
 
 This algorithm is then repeated, using the points from the previous operation, until the difference between the current shortest distance and the last shortest distance is either less than a certain tolerance, or the maximum number of operations has been reached.
 
+=== Required settings
+In order that implementations give the same results, it is necessary to define some basic settings.
+
 .Tolerance
 The value of the tolerance affects the final task distance. It also affects the number of operations required, which itself is dependant on the complexity of the task.
 
-A tolerance of 1 metre is used so that the calculations run quickly. A smaller value may shorten the planar distance by a few metres for a simple configuration of cylinders (perhaps more when the task travels between inner and outer cylinders). But this will not always be reflected in the final ellipsoidal distance and will require many more operations iterating over every cylinder.
+A tolerance of 1 metre is used so that the calculations run quickly. A smaller value may shorten the planar distance by a few metres for a simple configuration of cylinders (perhaps more when the task travels between inner and outer cylinders). But this will not always be reflected in the final ellipsoidal distance and will require many more operations iterating over each cylinder.
 
 .Maximum number of operations
-A maximum number of operations is required in case a distance larger than the previous one is found, which may lead to an infinite loop. This could happen in complex cylinder configurations using in-out sequences or if a cylinder erroneously intersects another.
+A maximum number of operations is required in case a distance larger than the previous one is found, which may lead to an infinite loop. This could happen in complex cylinder configurations or if a cylinder erroneously intersects another. The maximum number of operations is the number of points multiplied by 10.
 
 .Start index and order of evaluation
-The first point used in the evaluation must be at index 1, because the distance is measured from the center of the launch waypoint (regardless of whether it has been given a radius). When the calculations are used to determine the best distance flown, the set of points to be evaluated is created from a track point and the remaining cylinders not reached by the pilot.
+The first point used in the evaluation must be at index 1, because the distance is measured from the center of the launch waypoint (regardless of whether it has been given a radius).
 
-The order in which the algorithm steps through the set of points is also important. While the number of operations may be reduced by evaluating odd then even indexed points, or other such tricks, the results cannot be consistently replicated across difference cylinder configurations.
+The order in which the points are evalutated is also important. While the number of operations may be reduced by evaluating odd then even indexed points, or other such tricks, the results cannot be consistently replicated across difference cylinder configurations. Evaluation order must be sequentially upwards.
 
-.Summary of the basic requirements:
+.Summary of required settings:
 * The tolerance value is 1 metre.
-* The maximum number of operations is 10 * the number of points.
+* The maximum number of operations is the number of points * 10.
 * Points are evaluated seqentially upwards from index 1.
 
 == Examples
-Pseudo code is used liberally to convey the intention and flow of many operations. It is written in a C-like style and presented as a series of simple functions.
+The pseudo code used to convey the intention and flow of the calculations is written in a C-like style and presented as a series of simple functions.
 
 === Point object
-In these examples the object, or struct, representing a cylinder or line is denoted as a point. It has the following properties, or members:
+In these examples the object, or struct, representing a cylinder or line is denoted as a `point`. It has the following properties, or members:
 
 [horizontal]
 x:: (float) the x coordinate
@@ -87,14 +110,13 @@ radius:: (int) the radius in metres
 fx:: (float) the x coordinate of the fix
 fy:: (float) the y coordinate of the fix
 
-On construction, or when creating a new instance, the fx and fy properties must be initialized to the x and y values.
+On construction, or when creating a new instance, the `fx` and `fy` properties must be initialized to the `x` and `y` values.
 
 [source]
 ----
-// These examples use JavaScript object literals.
-
 function createPoint(x, y, radius = 0)
 {
+  // Using ECMAScript object literals to convey object creation
   return { x: x, y: y, radius: radius, fx: x, fy: y };
 }
 
@@ -112,11 +134,33 @@ function createPointFromFix(point)
 <<<
 
 === Planar calculations
-The main function is getShortestPath, which initiates and keeps track of the distance calculations returned from optimizePath. This function is responsible for stepping through the points and calculating the shortest distance, using the following functions:
+The entry point is the <<getshortestpath>> function, which initiates and keeps track of the distances found and the number of operations.
 
-* getTargetPoints
-* processCylinder
-* processLine
+The main function is <<optimizepath>>, which is responsible for stepping through the set of points and calculating the shortest distance. It uses the following helper functions:
+
+* <<gettargetpoints>>
+* <<processcylinder>>
+* <<processline>>
+
+==== Cylinder evaluation
+
+In general the the solution to finding the shortest path is either one of intersection or reflection, as shown in the image below.
+
+.The yellow dot marks the fix on the cylinder between point A and point B.
+image::all.jpg[]
+
+The functions to solve these problems are:
+
+* <<setintersection1>>
+* <<setintersection2>>
+* <<setreflection>>
+
+Exceptions to the above are when point A and point B are the same, or when one them is on the cylinder. The latter situation can only occur if a cylinder erroneously intersects another, which may result in a miscalculation or extra operations. These situations are handled by:
+
+* <<projectoncircle>>
+* <<pointoncircle>>
+
+<<<
 
 ==== getShortestPath
 This is the outer controlling function that iterates through a sequence of distance optimizations until the difference between the last one is less than the tolerance or the maximum number of operations has been reached.
@@ -141,7 +185,8 @@ function getShortestPath(points, esIndex, line)
   while (!finished && opsCount-- > 0) {
     distance = optimizePath(points, count, esIndex, line);
 
-    // See if the difference with the last distance is smaller than the tolerance
+    // See if the difference between the last distance id
+    // smaller than the tolerance
     finished = lastDistance - distance < tolerance;
     lastDistance = distance;
   }
@@ -192,7 +237,7 @@ function optimizePath(points, count, esIndex, line)
 ==== getTargetPoints
 Returns a set of three consecutive points comprising the target cylinder C, plus its preceding and succeeding points (A and B). The target point C is taken directly from the points array (ie. it is a reference, or copied by reference), while the other two are created as new point objects from either their fix or center positions.
 
-The end of speed section is taken from its center, so that its fix is based on the preceeding points rather than any subsequent points at different positions.
+The end of speed section is taken from its center position, so that its fix is pinned to the preceeding points, rather than any subsequent points at a different position.
 
 [source]
 ----
@@ -226,21 +271,11 @@ function getTargetPoints(points, count, index, esIndex)
 <<<
 
 ==== processCylinder
-Sets the fix on the target cylinder C from the fixes on the previous cylinder A and the next cylinder B. The distances between the points plus the distance between C center and the AB line segment are obtained from getRelativeDistances.
+Sets the fix on the target cylinder C from the fixes on the previous point A and the next point B.
 
-First, if A and B are the same point (distAB = 0) the fix is found by projecting the point on the circle: projectOnCircle.
+The distance from point C center to the AB line segment determines if it intersects the cylinder (distCtoAB < C radius). If it does and both points are inside the cylinder it requires the reflection solution, otherwise one of the intersection solutions. If the line does not intersect the cylinder or is tangent to it, it requires the reflection solution.
 
-Next pointOnCircle is called, which checks if either A or B are on the cylinder. This is an edge case situation which will only occur if a cylinder erroneously intersects another. If this is the situation, the function sets the fix from either A or B and returns true. Not handling this may result in a miscalculation.
-
-From here on, the solution to finding the shortest path is either one of intersection or reflection, as shown in the image below. The functions to solve these problems are:
-
-* setIntersection1
-* setIntersection2
-* setReflection
-
-image::all.jpg[]
-
-The distance from point C center to the AB line segment determines if it intersects the cylinder (distCtoAB < C radius) or not. If it does and both points are inside the cylinder it requires the reflection solution, otherwise one of the intersection solutions, depending on whether one point is inside or both points are outside the cylinder. If the line does not intersect the cylinder, or is tangent to it, it requires the reflection solution.
+See <<cylinder-evaluation>> for more information.
 
 [source]
 ----
@@ -368,7 +403,13 @@ function getIntersectionPoints(c, a, b, distAB)
 <<<
 
 ==== pointOnCircle
-Sets the C fix position if either point A or point B is on the circle C. If point A is on the circle, the fix is taken from point A. If point B is on the circle, the fix is either taken from the intersection point closest to point A (if the AB segment intersects the circle and point A is outside it), or from point B. Returns false if neither point is on the circle, otherwise true.
+Sets the C fix position if either point A or point B is on the circle C.
+
+* If point A is on the circle, the fix is taken from point A.
+
+* If point B is on the circle, the fix is either taken from the intersection point closest to point A (if the AB segment intersects the circle and point A is outside it), or from point B.
+
+Returns `false` if neither point is on the circle, otherwise `true`.
 
 image::points.jpg[]
 

@@ -10,12 +10,6 @@ font:
       bold: roboto-mono_bold.ttf
       italic: roboto-mono_italic.ttf
       bold_italic: roboto-mono_bold-italic.ttf
-    # For conums
-    M+ 1mn:
-      normal: mplus-1mn_regular-ascii-conums.ttf
-      bold: mplus-1mn_bold-ascii.ttf
-      italic: mplus-1mn_italic-ascii.ttf
-      bold_italic: mplus-1mn_bold_italic-ascii.ttf
 
 page:
   background_color: ffffff
