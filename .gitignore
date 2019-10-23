@@ -1,5 +1,5 @@
 releases/
-temp/
+output/
 *.html
 *.pdf
 *.docx

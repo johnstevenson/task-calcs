@@ -15,17 +15,6 @@ dir=$(cd "${0%[/\\]*}" > /dev/null; pwd)
 
 # Change to this root directory
 cd "$dir"
-current_branch="$(git rev-parse --abbrev-ref HEAD)"
-
-if [ $current_branch != "master" ]; then
-    echo "You must be on the master branch"
-    exit 1
-fi
-
-# Check there are no changes to stage or commit
-if [ ! -z "$(git status --porcelain)" ]; then
-    echo "WARNING: Uncommitted changes on master branch"
-fi
 
 # See if we were passed a specific version
 if [ $# -ne 0 ]; then

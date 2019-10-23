@@ -144,7 +144,7 @@ The main function is <<optimizepath>>, which is responsible for stepping through
 
 ==== Cylinder evaluation
 
-In general the the solution to finding the shortest path is either one of intersection or reflection, as shown in the image below.
+In general the solution to finding the shortest path is either one of intersection or reflection, as shown in the image below.
 
 .The yellow dot marks the fix on the cylinder between point A and point B.
 image::all.jpg[]
@@ -185,7 +185,7 @@ function getShortestPath(points, esIndex, line)
   while (!finished && opsCount-- > 0) {
     distance = optimizePath(points, count, esIndex, line);
 
-    // See if the difference between the last distance id
+    // See if the difference between the last distance is
     // smaller than the tolerance
     finished = lastDistance - distance < tolerance;
     lastDistance = distance;
