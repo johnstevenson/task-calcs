@@ -1,0 +1,77 @@
+extends: default
+
+font:
+  catalog:
+    Noto Sans:
+      normal: noto-sans_regular.ttf
+      bold: noto-sans_bold.ttf
+      italic: noto-sans_italic.ttf
+      bold_italic: noto-sans_bold-italic.ttf
+    Roboto Mono:
+      normal: roboto-mono_regular.ttf
+      bold: roboto-mono_bold.ttf
+      italic: roboto-mono_italic.ttf
+      bold_italic: roboto-mono_bold-italic.ttf
+    # M+ 1mn supports ASCII and the circled numbers used for conums
+    M+ 1mn:
+      normal: mplus1mn-regular-subset.ttf
+      bold: mplus1mn-bold-subset.ttf
+      italic: mplus1mn-italic-subset.ttf
+      bold_italic: mplus1mn-bold_italic-subset.ttf
+
+page:
+  ##margin: [0.5in, 0.67in, 0.67in, 0.67in]
+  margin: 1in
+
+base:
+  align: left
+  font_color: 000000
+  font_family: Noto Sans
+  font_size: 10
+literal:
+  font_color: b12146
+  font_family: Roboto Mono
+  font_size: $base_font_size_small
+
+heading:
+  align: left
+  font_color: 222222
+  font_family: $base_font_family
+  font_style: bold
+  # h1 is used for part titles (book doctype only)
+  h1_font_size: floor($base_font_size * 2.6)
+  # h2 is used for chapter titles (book doctype only)
+  ##h2_font_size: floor($base_font_size * 2.15)
+  h2_font_size: floor($base_font_size * 1.7)
+  h2_text_transform: uppercase
+  ##h3_font_size: round($base_font_size * 1.7)
+  h3_font_size: round($base_font_size * 1.5)
+  h3_font_style: bold_italic
+  h4_font_size: $base_font_size_large
+  h5_font_size: $base_font_size
+  h6_font_size: $base_font_size_small
+  line_height: 1
+  margin_top: $vertical_rhythm * 0.4
+  margin_bottom: $vertical_rhythm * 0.9
+
+title_page:
+  align: right
+#  logo:
+#    image: civl-logo.jpg
+#    image_align: right
+#    top: 10%
+  title:
+    top: 35%
+    font_size: $heading_h1_font_size
+    font_color: 222222
+    line_height: 1
+  authors:
+    font_color: 111111
+    font_style: italic
+
+blockquote:
+  font_color: 333333
+  font_size: $base_font_size_small
+code:
+  font_size: $literal_font_size
+  line_height: 1.2

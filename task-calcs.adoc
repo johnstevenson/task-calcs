@@ -15,7 +15,7 @@
 :data-uri:
 :includedir: includes
 :xrefstyle: basic
-:pdf-theme: basic
+:pdf-theme: custom
 :pdf-themesdir: assets
 :pdf-fontsdir: assets/fonts
 :source-highlighter: highlightjs
