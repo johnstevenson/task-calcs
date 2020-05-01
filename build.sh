@@ -6,7 +6,6 @@
 
 # Set the source document and output basename
 doc=task-calcs.adoc
-#output_basename=dev-task-calcs
 output_basename=task-calcs
 
 # Set the code highlighter for pdf

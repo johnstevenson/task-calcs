@@ -24,6 +24,7 @@
 // end settings
 
 = Task Distance Calculations
+CIVL Software Working Group
 //FAI Hang Gliding and Paragliding Commission
 //ifndef::revnumber[Not for distribution {localdatetime}]
 
@@ -122,7 +123,7 @@ function createPoint(x, y, radius = 0)
 
 function createPointFromCenter(point)
 {
-  return createPoint(point,x, point.y, point.radius)
+  return createPoint(point.x, point.y, point.radius)
 }
 
 function createPointFromFix(point)

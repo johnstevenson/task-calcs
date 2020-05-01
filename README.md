@@ -1,14 +1,22 @@
-# civl-fr-spec
+# task-calcs
 
-Technical specification for CIVL flight recorders. The official release version is available from https://www.fai.org/civl-documents 
+Explanation and algorithms for task distance optimization in CIVL hang gliding and paragliding competitions.
+
+The formal definition can be found in the Sporting Code, Section 7F (XC Scoring) from https://www.fai.org/civl-documents.
 
 ## About
 
-This repo contains the source text in [asciidoc][asciidoc] format, to make it easier to work with rather than sharing a Word document.
+This repo uses the [asciidoc][asciidoc] format to present its information. See [task-calcs.adoc](task-calcs.adoc), which is the data rendered by the Github interface (click the `Raw` button to see plain text).
 
-See [civl-fr-spec.adoc](civl-fr-spec.adoc), which is the specification rendered by the Github interface (click the `Raw` button to see plain text).
+The document can be output in PDF or HTML formats:
 
-Note that the `master` branch will not necessarily reflect the current version.
+```sh
+build.sh pdf
+build.sh html
+
+# output is placed in the output directory
+```
+
 
 ## Toolchain
 
@@ -18,7 +26,7 @@ Uses the [asciidoctor][asciidoctor] Ruby packages to produce html and pdf output
 2. Run `gem install asciidoctor` to get the main package
 3. Run `gem install asciidoctor-pdf` to get the PDF output package
 
-### Further reading
+#### Further reading
 
 - [AsciiDoc Writer’s Guide](https://asciidoctor.org/docs/asciidoc-writers-guide/)
 - [Asciidoctor User Manual](https://asciidoctor.org/docs/user-manual/)
